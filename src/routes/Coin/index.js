@@ -16,7 +16,7 @@ const Coin = () => {
         }).catch((err)=>{
             console.log(err);
         })
-    },[])
+    },[params.coinId])
 
   return (
     <div>
