@@ -11,7 +11,9 @@ const Coin = () => {
     const [coin, setCoin] = useState({});
 
     useEffect(()=>{
-        axios.get(`https://pro-api.coingecko.com/api/v3/coins/${params.coinId}`).then((res)=>{
+        axios.get(`https://pro-api.coingecko.com/api/v3/coins/${params.coinId}`,{headers: {
+    'X-CoinGecko-Api-Key': 'CG-MywxH6neuB3DmtcNGLK4Bi9k'
+  }}).then((res)=>{
             setCoin(res.data)
         }).catch((err)=>{
             console.log(err);
