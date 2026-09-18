@@ -8,3 +8,8 @@ build
 *.tsbuildinfo
 next-env.d.ts
 .vercel
+.env*
+# Ajouté par `vercel link`. L'exception compte : .env.example est un gabarit
+# versionné à valeurs vides, et `.env*` l'aurait silencieusement exclu au premier
+# qui l'aurait retiré puis rajouté au suivi.
+!.env.example
