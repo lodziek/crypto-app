@@ -42,3 +42,54 @@ export async function fetchUsdtPrices(): Promise<Map<string, number>> {
 
   return prices
 }
+
+export type Candle = {
+  time: number
+  open: number
+  high: number
+  low: number
+  close: number
+}
+
+/**
+ * Plages proposées sur la page détail.
+ *
+ * `binance` et `days` décrivent la même fenêtre pour les deux sources : les
+ * coins appairés reçoivent de vraies bougies, les autres une courbe CoinGecko
+ * couvrant la même période, pour que passer d'un coin à l'autre ne change pas
+ * l'échelle de temps sous les yeux du lecteur.
+ */
+export const RANGES = {
+  '7D': { binance: '1h', limit: 168, days: 7 },
+  '1M': { binance: '4h', limit: 180, days: 30 },
+  '6M': { binance: '1d', limit: 180, days: 180 },
+} as const
+
+export type RangeKey = keyof typeof RANGES
+
+export function isRangeKey(value: string): value is RangeKey {
+  return value in RANGES
+}
+
+/** Une entrée de klines est un tableau positionnel : [ouverture, O, H, L, C, …]. */
+type RawKline = unknown[]
+
+export async function fetchKlines(pair: string, range: RangeKey): Promise<Candle[]> {
+  const { binance, limit } = RANGES[range]
+  const url = `${BASE}/klines?symbol=${encodeURIComponent(pair)}&interval=${binance}&limit=${limit}`
+
+  const res = await fetch(url, { next: { revalidate: REVALIDATE } })
+  if (!res.ok) throw new Error(`Binance ${res.status} sur /klines`)
+
+  const raw = (await res.json()) as RawKline[]
+
+  return raw
+    .map((k) => ({
+      time: Number(k[0]),
+      open: Number(k[1]),
+      high: Number(k[2]),
+      low: Number(k[3]),
+      close: Number(k[4]),
+    }))
+    .filter((c) => Object.values(c).every((v) => Number.isFinite(v)))
+}

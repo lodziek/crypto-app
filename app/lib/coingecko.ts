@@ -129,3 +129,74 @@ export async function fetchMarkets(): Promise<CoinBase[]> {
 
   return raw.map(toCoin).filter((c): c is CoinBase => c !== null)
 }
+
+export type CoinDetail = {
+  description: string
+  homepage: string | null
+}
+
+/**
+ * Le HTML de CoinGecko est réduit à du texte brut, volontairement.
+ *
+ * L'ancienne version l'injectait via `dangerouslySetInnerHTML` avec DOMPurify
+ * en renfort — soit un sanitiseur embarqué dans le bundle client pour afficher
+ * trois paragraphes. En retirant les balises côté serveur, le texte traverse
+ * React comme n'importe quelle chaîne : échappé par construction, sans
+ * dépendance et sans surface d'injection. On y perd les liens de la description,
+ * ce qui est un prix raisonnable.
+ */
+function stripHtml(value: string): string {
+  return value
+    .replace(/<[^>]*>/g, '')
+    .replace(/&nbsp;/g, ' ')
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/\s+\n/g, '\n')
+    .trim()
+}
+
+/**
+ * Description et lien officiel. Tout le reste — prix, capitalisation, variations
+ * — vient déjà de /coins/markets : les blocs lourds sont donc désactivés, ce qui
+ * fait passer la réponse de plusieurs centaines de kilo-octets à quelques-uns.
+ */
+export async function fetchCoinDetail(id: string): Promise<CoinDetail> {
+  const raw = await request<Record<string, unknown>>(`/coins/${encodeURIComponent(id)}`, {
+    localization: 'false',
+    tickers: 'false',
+    market_data: 'false',
+    community_data: 'false',
+    developer_data: 'false',
+    sparkline: 'false',
+  })
+
+  const description = raw.description as { en?: unknown } | undefined
+  const links = raw.links as { homepage?: unknown } | undefined
+  const homepages = Array.isArray(links?.homepage) ? links.homepage : []
+  const homepage = homepages.find((h): h is string => typeof h === 'string' && h.startsWith('https://'))
+
+  return {
+    description: typeof description?.en === 'string' ? stripHtml(description.en) : '',
+    homepage: homepage ?? null,
+  }
+}
+
+/** Repli graphique pour les coins sans paire Binance : une courbe, pas des bougies. */
+export async function fetchMarketChart(id: string, days: number): Promise<Array<[number, number]>> {
+  const raw = await request<{ prices?: unknown }>(`/coins/${encodeURIComponent(id)}/market_chart`, {
+    vs_currency: 'usd',
+    days: String(days),
+  })
+
+  if (!Array.isArray(raw.prices)) return []
+
+  return raw.prices
+    .filter(
+      (p): p is [number, number] =>
+        Array.isArray(p) && p.length >= 2 && Number.isFinite(p[0]) && Number.isFinite(p[1]),
+    )
+    .map(([t, v]) => [t, v] as [number, number])
+}

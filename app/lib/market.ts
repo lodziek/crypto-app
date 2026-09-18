@@ -7,6 +7,7 @@
 import { fetchUsdtPrices } from './binance'
 import { fetchMarkets } from './coingecko'
 import { resolvePairs, type PairResolution } from './symbols'
+import type { Coin } from './types'
 
 export async function fetchMarket(): Promise<PairResolution> {
   // Les deux appels sont indépendants : les enchaîner doublerait la latence.
@@ -20,4 +21,19 @@ export async function fetchMarket(): Promise<PairResolution> {
   ])
 
   return resolvePairs(coins, prices)
+}
+
+/**
+ * Recherche d'un coin par identifiant, dans le référentiel déjà en cache.
+ *
+ * C'est aussi le garde-fou SSRF des routes dynamiques : un identifiant qui n'est
+ * pas dans le top 250 ne part jamais vers une API tierce. Valider la forme de la
+ * chaîne ne suffirait pas — `bitcoin` et `../../admin` passent le même filtre de
+ * caractères, seule l'appartenance à une liste connue tranche.
+ */
+export async function findCoin(id: string): Promise<Coin | null> {
+  if (!/^[a-z0-9][a-z0-9-]{0,63}$/.test(id)) return null
+
+  const { coins } = await fetchMarket()
+  return coins.find((c) => c.id === id) ?? null
 }

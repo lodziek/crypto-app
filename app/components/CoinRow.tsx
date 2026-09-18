@@ -22,6 +22,11 @@ export default function CoinRow({ coin }: { coin: Coin }) {
               lecteurs d'écran, mais toute la ligne reste cliquable. */}
           <Link
             href={`/coin/${coin.id}`}
+            /* Sans ça, Next précharge la page détail de chaque ligne visible, et
+               chaque préchargement est un rendu serveur qui interroge CoinGecko.
+               Le tableau en compte 250 : le coût est payé pour des pages que
+               personne n'ouvrira. */
+            prefetch={false}
             className="font-medium after:absolute after:inset-0 after:content-['']"
           >
             {coin.name}
