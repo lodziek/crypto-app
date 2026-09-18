@@ -1,7 +1,8 @@
 import Header from './components/Header'
 import MarketTable from './components/MarketTable'
 import ErrorState from './components/states/ErrorState'
-import { CoinGeckoError, fetchMarkets } from './lib/coingecko'
+import { CoinGeckoError } from './lib/coingecko'
+import { fetchMarket } from './lib/market'
 import { pageMetadata } from './lib/site'
 
 export const metadata = pageMetadata({ title: 'Market', path: '/' })
@@ -15,7 +16,7 @@ export default async function MarketPage() {
   let failure: string | null = null
 
   try {
-    coins = await fetchMarkets()
+    coins = (await fetchMarket()).coins
   } catch (error) {
     failure =
       error instanceof CoinGeckoError && error.status === 429

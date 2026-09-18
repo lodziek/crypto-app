@@ -13,7 +13,12 @@ export type PriceChange = {
   y1: number | null
 }
 
-export type Coin = {
+/**
+ * Un coin tel que CoinGecko le renvoie, avant appairage Binance. Ce type n'est
+ * manipulé qu'entre `fetchMarkets` et `resolvePairs` : partout ailleurs on
+ * attend un `Coin`, ce qui rend l'étape d'appairage impossible à oublier.
+ */
+export type CoinBase = {
   id: string // 'bitcoin' — clé de routage et identifiant CoinGecko
   symbol: string // 'btc'
   name: string
@@ -26,5 +31,13 @@ export type Coin = {
   ath: number
   athDate: string
   change: PriceChange
-  sparkline: number[] // 168 points, un par heure sur 7 jours
+  sparkline: number[] // échantillonnée à 40 points par la couche de données
+}
+
+export type Coin = CoinBase & {
+  /**
+   * Paire Binance correspondante, ou `null` quand le coin n'y est pas coté.
+   * Renseignée par `resolvePairs` (lib/symbols.ts), pas par CoinGecko.
+   */
+  pair: string | null
 }

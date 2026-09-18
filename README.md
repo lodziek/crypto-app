@@ -44,6 +44,11 @@ Trois points à connaître avant de toucher à cette répartition :
   Utiliser `!miniTicker@arr`, qui fonctionne et n'envoie que les symboles ayant
   bougé. Il ne fournit pas de champ de variation : elle se calcule
   `(c - o) / o * 100`.
+- **L'appairage se contrôle par le prix, pas seulement par le symbole.** Deux
+  projets peuvent partager un ticker, et une paire délistée continue de renvoyer
+  son dernier prix comme si de rien n'était. `resolvePairs` rejette tout écart de
+  plus de 5 % avec le prix CoinGecko : c'est ce qui évite d'afficher Monero à
+  118 $ au lieu de 560 $, via une paire `XMRUSDT` gelée depuis son délistage.
 - **L'hôte est `data-stream.binance.vision`**, pas `stream.binance.com` : il est
   dédié aux données de marché, ne demande aucun compte, et se connecte cinq fois
   plus vite (1,4 s contre 7,2 s en mesure).

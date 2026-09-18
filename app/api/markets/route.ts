@@ -1,4 +1,5 @@
-import { fetchMarkets, CoinGeckoError } from '@/app/lib/coingecko'
+import { CoinGeckoError } from '@/app/lib/coingecko'
+import { fetchMarket } from '@/app/lib/market'
 
 /**
  * Référentiel pour le client.
@@ -13,8 +14,8 @@ import { fetchMarkets, CoinGeckoError } from '@/app/lib/coingecko'
  */
 export async function GET() {
   try {
-    const coins = await fetchMarkets()
-    return Response.json({ coins, at: Date.now() })
+    const { coins, stats } = await fetchMarket()
+    return Response.json({ coins, pairing: stats, at: Date.now() })
   } catch (error) {
     const status = error instanceof CoinGeckoError && error.status === 429 ? 429 : 502
     const message =

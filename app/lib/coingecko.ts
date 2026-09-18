@@ -2,7 +2,7 @@
  * Accès CoinGecko. **Serveur uniquement** : ce module lit la clé API, il ne doit
  * jamais être importé depuis un composant client.
  */
-import type { Coin, PriceChange } from './types'
+import type { CoinBase, PriceChange } from './types'
 
 // Le plan Demo impose api.coingecko.com et l'en-tête `x-cg-demo-api-key`.
 // pro-api.coingecko.com est réservé aux abonnements payants et répond 401 à une
@@ -76,7 +76,7 @@ type RawMarket = Record<string, unknown> & {
   sparkline_in_7d?: { price?: unknown }
 }
 
-function toCoin(raw: RawMarket): Coin | null {
+function toCoin(raw: RawMarket): CoinBase | null {
   const id = typeof raw.id === 'string' ? raw.id : null
   const price = num(raw.current_price)
   // Un coin sans identifiant ou sans prix n'est pas affichable : on l'écarte
@@ -117,7 +117,7 @@ function toCoin(raw: RawMarket): Coin | null {
  * `sparkline` ni `price_change_percentage`, CoinGecko renvoie une réponse amputée
  * et il faut un second appel par coin — l'erreur de conception de l'ancienne app.
  */
-export async function fetchMarkets(): Promise<Coin[]> {
+export async function fetchMarkets(): Promise<CoinBase[]> {
   const raw = await request<RawMarket[]>('/coins/markets', {
     vs_currency: 'usd',
     order: 'market_cap_desc',
@@ -127,5 +127,5 @@ export async function fetchMarkets(): Promise<Coin[]> {
     price_change_percentage: '1h,24h,7d,30d,1y',
   })
 
-  return raw.map(toCoin).filter((c): c is Coin => c !== null)
+  return raw.map(toCoin).filter((c): c is CoinBase => c !== null)
 }
