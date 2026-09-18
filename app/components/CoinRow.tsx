@@ -9,7 +9,7 @@ import Sparkline from './Sparkline'
 export default function CoinRow({ coin }: { coin: Coin }) {
   return (
     <tr className="relative border-b border-rule/60 transition-colors hover:bg-raised">
-      <td className="py-3 pl-2 pr-1 text-right text-xs text-muted tnum sm:pl-4 sm:pr-2">{coin.rank}</td>
+      <td className="py-3 pl-2 pr-1 text-right text-xs text-muted tnum sm:pl-4 sm:pr-2">{coin.rank ?? '—'}</td>
 
       <td className="py-3 pr-2 sm:pr-4">
         <div className="flex items-center gap-2 sm:gap-3">

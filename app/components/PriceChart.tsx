@@ -98,7 +98,9 @@ export default function PriceChart({ pair, coinId, initialRange, initialSeries }
 
   const selectRange = useCallback(
     async (next: RangeKey) => {
-      if (next === range) return
+      // Recliquer la plage courante ne fait rien… sauf si elle a échoué : c'est
+      // alors le seul geste naturel pour réessayer.
+      if (next === range && !failed) return
 
       setRange(next)
       setFailed(false)
@@ -146,7 +148,7 @@ export default function PriceChart({ pair, coinId, initialRange, initialSeries }
         if (requestId.current === id) setLoading(false)
       }
     },
-    [range, initialRange, initialSeries, pair, coinId],
+    [range, failed, initialRange, initialSeries, pair, coinId],
   )
 
   const points = useMemo(() => toPoints(series), [series])
@@ -275,7 +277,7 @@ export default function PriceChart({ pair, coinId, initialRange, initialSeries }
             height={HEIGHT}
             className="block touch-none"
             tabIndex={0}
-            role="img"
+            role="group"
             aria-label={`${range} price chart. Use left and right arrow keys to read values.`}
             onPointerMove={handlePointer}
             onPointerLeave={() => setCursor(null)}

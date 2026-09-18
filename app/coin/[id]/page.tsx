@@ -6,9 +6,11 @@ import LiveChange from '../../components/LiveChange'
 import LivePrice from '../../components/LivePrice'
 import PriceChart, { type Series } from '../../components/PriceChart'
 import StatGrid from '../../components/StatGrid'
+import ErrorState from '../../components/states/ErrorState'
 import { RANGES, fetchKlines, type RangeKey } from '../../lib/binance'
 import { fetchCoinDetail, fetchMarketChart } from '../../lib/coingecko'
 import { findCoin } from '../../lib/market'
+import type { Coin } from '../../lib/types'
 import { pageMetadata } from '../../lib/site'
 
 export const revalidate = 60
@@ -23,13 +25,18 @@ type Params = { params: Promise<{ id: string }> }
  */
 export async function generateMetadata({ params }: Params) {
   const { id } = await params
-  const coin = await findCoin(id)
 
+  // Un référentiel injoignable n'est pas un coin inconnu : annoncer « Coin not
+  // tracked » sur une simple limite de quota mentirait, et ce titre partirait
+  // dans les métadonnées partagées.
+  const coin = await findCoin(id).catch(() => undefined)
+
+  if (coin === undefined) return pageMetadata({ title: 'Market data unavailable', path: `/coin/${id}` })
   if (!coin) return pageMetadata({ title: 'Coin not tracked', path: `/coin/${id}` })
 
   return pageMetadata({
     title: `${coin.name} (${coin.symbol.toUpperCase()})`,
-    description: `${coin.name} price, market capitalization and trading data. Ranked #${coin.rank} by market cap.`,
+    description: `${coin.name} price, market capitalization and trading data.${coin.rank === null ? '' : ` Ranked #${coin.rank} by market cap.`}`,
     path: `/coin/${coin.id}`,
   })
 }
@@ -54,7 +61,26 @@ async function initialSeries(pair: string | null, id: string): Promise<Series> {
 
 export default async function CoinPage({ params }: Params) {
   const { id } = await params
-  const coin = await findCoin(id)
+
+  let coin: Coin | null
+  try {
+    coin = await findCoin(id)
+  } catch {
+    // Le référentiel est injoignable. Sans cette distinction, une limite de
+    // quota amont produisait un 500 titré « Coin not tracked » sur un coin
+    // parfaitement valide — une page cassée doublée d'un message faux.
+    return (
+      <>
+        <Header />
+        <main className="mx-auto max-w-6xl px-4 py-16">
+          <ErrorState
+            title="Market data unavailable"
+            detail="Could not reach the market data provider. This is usually temporary."
+          />
+        </main>
+      </>
+    )
+  }
 
   if (!coin) notFound()
 
@@ -78,7 +104,7 @@ export default async function CoinPage({ params }: Params) {
           <h1 className="text-2xl font-semibold tracking-tight">{coin.name}</h1>
           <span className="font-mono text-sm uppercase text-muted">{coin.symbol}</span>
           <span className="rounded border border-rule px-2 py-0.5 font-mono text-[11px] text-muted">
-            Rank #{coin.rank}
+            {coin.rank === null ? 'Unranked' : `Rank #${coin.rank}`}
           </span>
           {coin.pair ? null : (
             <span className="rounded border border-rule px-2 py-0.5 font-mono text-[11px] text-muted">

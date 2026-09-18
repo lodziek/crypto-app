@@ -23,7 +23,13 @@ export type CoinBase = {
   symbol: string // 'btc'
   name: string
   image: string
-  rank: number
+  /**
+   * `null` quand CoinGecko ne classe pas le coin — le champ l'est pour 28 des
+   * 750 coins des rangs 251-1000. Le coercer à 0 l'afficherait « 0 » et le
+   * trierait avant Bitcoin, la même erreur que renvoyer 0 pour une variation
+   * absente.
+   */
+  rank: number | null
   price: number
   marketCap: number
   volume24h: number

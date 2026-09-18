@@ -100,7 +100,7 @@ function toCoin(raw: RawMarket): CoinBase | null {
     symbol: typeof raw.symbol === 'string' ? raw.symbol : '',
     name: typeof raw.name === 'string' ? raw.name : id,
     image: typeof raw.image === 'string' ? raw.image : '',
-    rank: num(raw.market_cap_rank) ?? 0,
+    rank: num(raw.market_cap_rank),
     price,
     marketCap: num(raw.market_cap) ?? 0,
     volume24h: num(raw.total_volume) ?? 0,

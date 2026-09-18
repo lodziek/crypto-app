@@ -5,7 +5,6 @@ const { PHASE_DEVELOPMENT_SERVER } = require('next/constants')
 // Origines externes contactées par le navigateur. Toute nouvelle source de
 // données doit être déclarée ici, sinon la CSP la bloque silencieusement.
 const BINANCE_REST = 'https://api.binance.com'
-const BINANCE_STREAM = 'https://data-stream.binance.vision'
 const BINANCE_SOCKET = 'wss://data-stream.binance.vision'
 
 /**
@@ -17,7 +16,7 @@ const BINANCE_SOCKET = 'wss://data-stream.binance.vision'
 function contentSecurityPolicy(isDev) {
     const scriptSrc = ["'self'", "'unsafe-inline'"]
     // L'indice Fear & Greed n'y figure pas : il est appelé côté serveur.
-    const connectSrc = ["'self'", BINANCE_REST, BINANCE_STREAM, BINANCE_SOCKET]
+    const connectSrc = ["'self'", BINANCE_REST, BINANCE_SOCKET]
 
     if (isDev) {
         scriptSrc.push("'unsafe-eval'")
@@ -49,12 +48,12 @@ module.exports = (phase) => {
         // d'option pour les désactiver — elles n'existent que si un `'use server'`
         // est écrit quelque part. La règle tient donc par convention : toute
         // mutation passerait par un Route Handler, jamais par une action.
-        images: {
-            remotePatterns: [
-                { protocol: 'https', hostname: 'coin-images.coingecko.com' },
-                { protocol: 'https', hostname: 'assets.coingecko.com' },
-            ],
-        },
+        // Pas de `images.remotePatterns` : les logos sont rendus en
+        // `unoptimized`, l'optimiseur Next ne tourne donc jamais et l'allowlist
+        // ne serait consultée par personne. Ce sont 250 vignettes de 24 px déjà
+        // servies par le CDN de CoinGecko ; les faire transiter par l'optimiseur
+        // coûterait plus qu'il ne rapporterait. Retirer `unoptimized` impose de
+        // redéclarer les hôtes ici.
         async headers() {
             return [
                 {

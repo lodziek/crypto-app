@@ -72,7 +72,6 @@ Cinq points à connaître avant de toucher à cette répartition.
 app/
 ├── page.tsx              Marché — composant serveur, revalidation 60 s
 ├── coin/[id]/page.tsx    Détail — SSR + generateMetadata (lien partageable)
-├── api/markets           Référentiel pour les rafraîchissements client
 ├── api/chart/[id]        Repli graphique, coins sans paire Binance
 ├── components/           MarketTable (client), CoinRow, PriceChart, Sparkline…
 └── lib/

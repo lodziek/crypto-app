@@ -204,7 +204,14 @@ export function subscribe(pair: string, listener: Listener): () => void {
 
   return () => {
     subscribers.delete(listener)
-    if (subscribers.size === 0) listeners.delete(pair)
+
+    // On ne supprime que si l'ensemble enregistré est toujours celui capturé à
+    // l'abonnement : un désabonnement tardif effacerait sinon l'ensemble créé
+    // entre-temps par un nouvel abonné, et la paire cesserait d'être servie sans
+    // la moindre erreur.
+    if (subscribers.size === 0 && listeners.get(pair) === subscribers) {
+      listeners.delete(pair)
+    }
 
     if (listeners.size === 0 && !idleTimer) {
       idleTimer = setTimeout(() => {

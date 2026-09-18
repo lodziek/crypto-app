@@ -32,7 +32,12 @@ export async function fetchMarket(): Promise<PairResolution> {
  * caractères, seule l'appartenance à une liste connue tranche.
  */
 export async function findCoin(id: string): Promise<Coin | null> {
-  if (!/^[a-z0-9][a-z0-9-]{0,63}$/.test(id)) return null
+  // Ce filtre n'est qu'un court-circuit bon marché : c'est l'appartenance au
+  // référentiel, plus bas, qui ferme réellement la surface SSRF. La borne est
+  // donc large — les identifiants de fonds tokenisés frôlent déjà 60 caractères
+  // (« superstate-short-duration-us-government-securities-fund-ustb »), et un
+  // plafond trop serré rendrait injoignable la page d'un coin parfaitement légitime.
+  if (!/^[a-z0-9][a-z0-9-]{0,127}$/.test(id)) return null
 
   const { coins } = await fetchMarket()
   return coins.find((c) => c.id === id) ?? null

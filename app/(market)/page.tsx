@@ -1,11 +1,11 @@
-import FearGreed from './components/FearGreed'
-import Header from './components/Header'
-import MarketTable from './components/MarketTable'
-import ErrorState from './components/states/ErrorState'
-import { CoinGeckoError } from './lib/coingecko'
-import { fetchFearGreed } from './lib/fearGreed'
-import { fetchMarket } from './lib/market'
-import { pageMetadata } from './lib/site'
+import FearGreed from '../components/FearGreed'
+import Header from '../components/Header'
+import MarketTable from '../components/MarketTable'
+import ErrorState from '../components/states/ErrorState'
+import { CoinGeckoError } from '../lib/coingecko'
+import { fetchFearGreed } from '../lib/fearGreed'
+import { fetchMarket } from '../lib/market'
+import { pageMetadata } from '../lib/site'
 
 export const metadata = pageMetadata({ title: 'Market', path: '/' })
 
