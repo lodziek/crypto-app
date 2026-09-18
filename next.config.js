@@ -7,7 +7,6 @@ const { PHASE_DEVELOPMENT_SERVER } = require('next/constants')
 const BINANCE_REST = 'https://api.binance.com'
 const BINANCE_STREAM = 'https://data-stream.binance.vision'
 const BINANCE_SOCKET = 'wss://data-stream.binance.vision'
-const FEAR_GREED = 'https://api.alternative.me'
 
 /**
  * Le développement a besoin de deux tolérances que la production ne doit jamais
@@ -17,7 +16,8 @@ const FEAR_GREED = 'https://api.alternative.me'
  */
 function contentSecurityPolicy(isDev) {
     const scriptSrc = ["'self'", "'unsafe-inline'"]
-    const connectSrc = ["'self'", BINANCE_REST, BINANCE_STREAM, BINANCE_SOCKET, FEAR_GREED]
+    // L'indice Fear & Greed n'y figure pas : il est appelé côté serveur.
+    const connectSrc = ["'self'", BINANCE_REST, BINANCE_STREAM, BINANCE_SOCKET]
 
     if (isDev) {
         scriptSrc.push("'unsafe-eval'")
