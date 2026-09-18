@@ -9,6 +9,15 @@ const eslintConfig = [
   },
   ...nextCoreWebVitals,
   ...nextTypescript,
+  {
+    // next.config.js est chargé en CommonJS par Next, et `next/constants` n'est
+    // pas exposé à la résolution ESM : la forme `require` est la seule qui
+    // fonctionne, et c'est celle que documente Next pour l'API de phases.
+    files: ['next.config.js'],
+    rules: {
+      '@typescript-eslint/no-require-imports': 'off',
+    },
+  },
 ]
 
 export default eslintConfig

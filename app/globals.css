@@ -10,45 +10,52 @@
  *
  * Le thème sombre est la valeur par défaut portée par :root ; le clair n'est
  * qu'une surcharge sous .light.
+ *
+ * Ces deux blocs vivent HORS de @layer, volontairement. Tailwind 3 tree-shake le
+ * contenu de ses layers — `base` compris — en cherchant les classes dans les
+ * fichiers déclarés par `content`. Tant qu'aucun composant n'écrit la chaîne
+ * « light », un `:root.light` placé dans @layer base est purgé en silence : le
+ * thème clair disparaît sans erreur ni avertissement. En CSS brute, il survit
+ * quel que soit l'état du reste du code.
  */
 
+:root {
+    --bg: 11 14 15;
+    --surface: 18 23 26;
+    --raised: 22 28 31;
+    --ink: 228 235 234;
+    --muted: 140 156 155;
+    --accent: 94 234 212;
+    --accent-strong: 45 212 191;
+    --on-accent: 6 32 28;
+    --rule: 31 42 44;
+    --grid: 18 25 26;
+    /* Hausse et baisse. Volontairement pas le rouge/vert saturé habituel :
+       il vibre sur fond sombre et devient illisible en petite taille. */
+    --up: 74 222 128;
+    --down: 248 113 113;
+    color-scheme: dark;
+}
+
+:root.light {
+    --bg: 244 246 246;
+    --surface: 255 255 255;
+    --raised: 255 255 255;
+    --ink: 15 21 22;
+    --muted: 79 99 97;
+    /* teal-700 : le turquoise du thème sombre tombe à 2,2:1 sur du blanc,
+       très en dessous du minimum de 4,5:1. */
+    --accent: 15 118 110;
+    --accent-strong: 17 94 89;
+    --on-accent: 255 255 255;
+    --rule: 220 228 227;
+    --grid: 231 236 235;
+    --up: 21 128 61;
+    --down: 185 28 28;
+    color-scheme: light;
+}
+
 @layer base {
-    :root {
-        --bg: 11 14 15;
-        --surface: 18 23 26;
-        --raised: 22 28 31;
-        --ink: 228 235 234;
-        --muted: 140 156 155;
-        --accent: 94 234 212;
-        --accent-strong: 45 212 191;
-        --on-accent: 6 32 28;
-        --rule: 31 42 44;
-        --grid: 18 25 26;
-        /* Hausse et baisse. Volontairement pas le rouge/vert saturé habituel :
-           il vibre sur fond sombre et devient illisible en petite taille. */
-        --up: 74 222 128;
-        --down: 248 113 113;
-        color-scheme: dark;
-    }
-
-    :root.light {
-        --bg: 244 246 246;
-        --surface: 255 255 255;
-        --raised: 255 255 255;
-        --ink: 15 21 22;
-        --muted: 79 99 97;
-        /* teal-700 : le turquoise du thème sombre tombe à 2,2:1 sur du blanc,
-           très en dessous du minimum de 4,5:1. */
-        --accent: 15 118 110;
-        --accent-strong: 17 94 89;
-        --on-accent: 255 255 255;
-        --rule: 220 228 227;
-        --grid: 231 236 235;
-        --up: 21 128 61;
-        --down: 185 28 28;
-        color-scheme: light;
-    }
-
     body {
         @apply bg-bg text-ink antialiased;
     }

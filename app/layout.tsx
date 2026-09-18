@@ -32,7 +32,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" className={`${body.variable} ${mono.variable}`}>
       <body className="min-h-screen">
-        <div aria-hidden className="pointer-events-none fixed inset-0 grid-rule opacity-60" />
+        <div aria-hidden className="pointer-events-none fixed inset-0 grid-rule opacity-40" />
         <div className="relative">{children}</div>
       </body>
     </html>
