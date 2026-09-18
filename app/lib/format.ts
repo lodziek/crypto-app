@@ -59,3 +59,21 @@ export function trendClass(value: number | null): string {
   if (value < 0) return 'text-down'
   return 'text-muted'
 }
+
+/**
+ * Libellé d'axe. Sur un écran étroit, « $81,057.00 » impose une gouttière qui
+ * dévore le quart du graphique ; la notation compacte la divise par deux.
+ *
+ * Elle ne s'applique qu'au-dessus de 1 000 : en dessous, « $0.09 » perdrait la
+ * précision qui fait justement la lecture d'un microcap.
+ */
+export function formatAxisPrice(value: number, compact: boolean): string {
+  if (!compact || Math.abs(value) < 1000) return formatPrice(value)
+
+  return new Intl.NumberFormat(LOCALE, {
+    style: 'currency',
+    currency: 'USD',
+    notation: 'compact',
+    maximumFractionDigits: 1,
+  }).format(value)
+}

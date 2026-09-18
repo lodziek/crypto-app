@@ -108,7 +108,7 @@ export default function MarketTable({ coins }: { coins: Coin[] }) {
           placeholder="Search name or symbol…"
           className="w-full max-w-xs rounded border border-rule bg-surface px-3 py-1.5 text-sm placeholder:text-muted focus:border-accent"
         />
-        <p aria-live="polite" className="font-mono text-xs text-muted">
+        <p aria-live="polite" className="shrink-0 whitespace-nowrap font-mono text-xs text-muted">
           {visible.length} / {coins.length}
         </p>
       </div>
@@ -117,7 +117,7 @@ export default function MarketTable({ coins }: { coins: Coin[] }) {
         <EmptyState query={deferredQuery.trim()} />
       ) : (
         <div className="overflow-x-auto">
-          <table className="w-full border-collapse text-sm">
+          <table className="w-full border-collapse text-xs sm:text-sm">
             <caption className="sr-only">
               Cryptocurrencies ranked by market capitalization, with price and recent change. Rows
               traded on Binance update in real time and are marked with a dot next to the price.
@@ -132,7 +132,7 @@ export default function MarketTable({ coins }: { coins: Coin[] }) {
                       key={col.key}
                       scope="col"
                       aria-sort={active ? (sort.ascending ? 'ascending' : 'descending') : 'none'}
-                      className={`py-2 pr-4 font-medium ${col.align === 'right' ? 'text-right' : 'text-left'} ${col.hide} ${col.key === 'rank' ? 'pl-4' : ''}`}
+                      className={`whitespace-nowrap py-2 pr-2 font-medium sm:pr-4 ${col.align === 'right' ? 'text-right' : 'text-left'} ${col.hide} ${col.key === 'rank' ? 'pl-2 sm:pl-4' : ''}`}
                     >
                       <button
                         type="button"

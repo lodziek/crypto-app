@@ -9,10 +9,10 @@ import Sparkline from './Sparkline'
 export default function CoinRow({ coin }: { coin: Coin }) {
   return (
     <tr className="relative border-b border-rule/60 transition-colors hover:bg-raised">
-      <td className="py-3 pl-4 pr-2 text-right text-xs text-muted tnum">{coin.rank}</td>
+      <td className="py-3 pl-2 pr-1 text-right text-xs text-muted tnum sm:pl-4 sm:pr-2">{coin.rank}</td>
 
-      <td className="py-3 pr-4">
-        <div className="flex items-center gap-3">
+      <td className="py-3 pr-2 sm:pr-4">
+        <div className="flex items-center gap-2 sm:gap-3">
           {coin.image ? (
             <Image src={coin.image} alt="" width={24} height={24} className="shrink-0" unoptimized />
           ) : (
@@ -31,11 +31,11 @@ export default function CoinRow({ coin }: { coin: Coin }) {
           >
             {coin.name}
           </Link>
-          <span className="font-mono text-xs uppercase text-muted">{coin.symbol}</span>
+          <span className="hidden font-mono text-xs uppercase text-muted sm:inline">{coin.symbol}</span>
         </div>
       </td>
 
-      <td className="py-3 pr-4 text-right tnum">
+      <td className="whitespace-nowrap py-3 pr-2 text-right tnum sm:pr-4">
         <LivePrice pair={coin.pair} price={coin.price} />
       </td>
 
@@ -43,7 +43,7 @@ export default function CoinRow({ coin }: { coin: Coin }) {
         {formatPercent(coin.change.h1)}
       </td>
 
-      <td className="py-3 pr-4 text-right tnum">
+      <td className="whitespace-nowrap py-3 pr-2 text-right tnum sm:pr-4">
         <LiveChange pair={coin.pair} change={coin.change.h24} />
       </td>
 

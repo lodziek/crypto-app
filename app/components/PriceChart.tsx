@@ -2,7 +2,7 @@
 
 import { useCallback, useMemo, useRef, useState } from 'react'
 import { RANGES, type Candle, type RangeKey } from '../lib/binance'
-import { formatPrice } from '../lib/format'
+import { formatAxisPrice, formatPrice } from '../lib/format'
 
 export type Series =
   | { kind: 'candles'; data: Candle[] }
@@ -16,11 +16,13 @@ type Props = {
 }
 
 const HEIGHT = 340
-// La gouttière gauche loge le plus long libellé de prix possible (« $83,103.87 »,
-// ou « $0.00001234 » sur un microcap) : trop étroite, le texte est rogné.
-const PAD = { top: 12, right: 12, bottom: 28, left: 82 }
 const GRID_LINES = 4
-const X_LABELS = 4
+
+// En dessous de cette largeur, le graphique passe en mode compact : gouttière
+// réduite, libellés de prix abrégés et moitié moins de repères de date. Sur un
+// téléphone, la gouttière pleine dévorait le quart de la surface utile et les
+// dates se chevauchaient.
+const COMPACT_BELOW = 520
 
 /**
  * Toutes les dates sont formatées en UTC, explicitement.
@@ -150,9 +152,16 @@ export default function PriceChart({ pair, coinId, initialRange, initialSeries }
   const points = useMemo(() => toPoints(series), [series])
   const format = useMemo(() => makeDateFormatter(range), [range])
 
+  const compact = width > 0 && width < COMPACT_BELOW
+  const pad = useMemo(
+    () => ({ top: 12, right: 12, bottom: 28, left: compact ? 46 : 82 }),
+    [compact],
+  )
+  const xLabelCount = compact ? 2 : 4
+
   const plot = useMemo(() => {
-    const innerWidth = Math.max(0, width - PAD.left - PAD.right)
-    const innerHeight = HEIGHT - PAD.top - PAD.bottom
+    const innerWidth = Math.max(0, width - pad.left - pad.right)
+    const innerHeight = HEIGHT - pad.top - pad.bottom
 
     if (points.length < 2 || innerWidth <= 0) {
       return { innerWidth, innerHeight, min: 0, max: 0, x: () => 0, y: () => 0 }
@@ -177,10 +186,10 @@ export default function PriceChart({ pair, coinId, initialRange, initialSeries }
       innerHeight,
       min,
       max,
-      x: (i: number) => PAD.left + (i / (points.length - 1)) * innerWidth,
-      y: (v: number) => PAD.top + (1 - (v - min) / span) * innerHeight,
+      x: (i: number) => pad.left + (i / (points.length - 1)) * innerWidth,
+      y: (v: number) => pad.top + (1 - (v - min) / span) * innerHeight,
     }
-  }, [points, width])
+  }, [points, width, pad])
 
   const active = cursor !== null ? points[cursor] : null
 
@@ -189,11 +198,11 @@ export default function PriceChart({ pair, coinId, initialRange, initialSeries }
       if (points.length < 2 || plot.innerWidth <= 0) return
 
       const box = event.currentTarget.getBoundingClientRect()
-      const ratio = (event.clientX - box.left - PAD.left) / plot.innerWidth
+      const ratio = (event.clientX - box.left - pad.left) / plot.innerWidth
       const index = Math.round(ratio * (points.length - 1))
       setCursor(Math.min(points.length - 1, Math.max(0, index)))
     },
-    [points.length, plot.innerWidth],
+    [points.length, plot.innerWidth, pad.left],
   )
 
   const handleKey = useCallback(
@@ -219,11 +228,11 @@ export default function PriceChart({ pair, coinId, initialRange, initialSeries }
   const xLabels = useMemo(() => {
     if (points.length < 2) return []
 
-    return Array.from({ length: X_LABELS }, (_, i) => {
-      const index = Math.round((i / (X_LABELS - 1)) * (points.length - 1))
+    return Array.from({ length: xLabelCount }, (_, i) => {
+      const index = Math.round((i / (xLabelCount - 1)) * (points.length - 1))
       return { index, text: format.format(new Date(points[index].time)) }
     })
-  }, [points, format])
+  }, [points, format, xLabelCount])
 
   const bodyWidth = points.length > 0 ? Math.max(1, (plot.innerWidth / points.length) * 0.62) : 1
 
@@ -276,21 +285,21 @@ export default function PriceChart({ pair, coinId, initialRange, initialSeries }
             {ticks.map((value) => (
               <g key={value}>
                 <line
-                  x1={PAD.left}
-                  x2={width - PAD.right}
+                  x1={pad.left}
+                  x2={width - pad.right}
                   y1={plot.y(value)}
                   y2={plot.y(value)}
                   stroke="rgb(var(--rule))"
                   strokeWidth={1}
                 />
                 <text
-                  x={PAD.left - 8}
+                  x={pad.left - 8}
                   y={plot.y(value)}
                   textAnchor="end"
                   dominantBaseline="middle"
                   className="fill-[rgb(var(--muted))] font-mono text-[10px]"
                 >
-                  {formatPrice(value)}
+                  {formatAxisPrice(value, compact)}
                 </text>
               </g>
             ))}
@@ -353,8 +362,8 @@ export default function PriceChart({ pair, coinId, initialRange, initialSeries }
                 <line
                   x1={plot.x(cursor)}
                   x2={plot.x(cursor)}
-                  y1={PAD.top}
-                  y2={HEIGHT - PAD.bottom}
+                  y1={pad.top}
+                  y2={HEIGHT - pad.bottom}
                   stroke="rgb(var(--ink))"
                   strokeWidth={1}
                   strokeDasharray="3 3"
