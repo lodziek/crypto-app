@@ -20,7 +20,8 @@ export default function MarketTable({ coins }: { coins: Coin[] }) {
     <div className="overflow-x-auto">
       <table className="w-full border-collapse text-sm">
         <caption className="sr-only">
-          Cryptocurrencies ranked by market capitalization, with price and recent change.
+          Cryptocurrencies ranked by market capitalization, with price and recent change. Rows
+          traded on Binance update in real time and are marked with a dot next to the price.
         </caption>
         <thead>
           <tr className="border-b border-rule text-xs uppercase tracking-wide text-muted">

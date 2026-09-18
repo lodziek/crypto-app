@@ -1,7 +1,9 @@
 import Image from 'next/image'
 import Link from 'next/link'
 import type { Coin } from '../lib/types'
-import { formatCompact, formatPercent, formatPrice, trendClass } from '../lib/format'
+import { formatCompact, formatPercent, trendClass } from '../lib/format'
+import LiveChange from './LiveChange'
+import LivePrice from './LivePrice'
 import Sparkline from './Sparkline'
 
 export default function CoinRow({ coin }: { coin: Coin }) {
@@ -28,14 +30,16 @@ export default function CoinRow({ coin }: { coin: Coin }) {
         </div>
       </td>
 
-      <td className="py-3 pr-4 text-right tnum">{formatPrice(coin.price)}</td>
+      <td className="py-3 pr-4 text-right tnum">
+        <LivePrice pair={coin.pair} price={coin.price} />
+      </td>
 
       <td className={`hidden py-3 pr-4 text-right tnum sm:table-cell ${trendClass(coin.change.h1)}`}>
         {formatPercent(coin.change.h1)}
       </td>
 
-      <td className={`py-3 pr-4 text-right tnum ${trendClass(coin.change.h24)}`}>
-        {formatPercent(coin.change.h24)}
+      <td className="py-3 pr-4 text-right tnum">
+        <LiveChange pair={coin.pair} change={coin.change.h24} />
       </td>
 
       <td className={`hidden py-3 pr-4 text-right tnum md:table-cell ${trendClass(coin.change.d7)}`}>
