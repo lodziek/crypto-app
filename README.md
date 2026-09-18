@@ -1,70 +1,59 @@
-# Getting Started with Create React App
+# Crypto Console
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+Suivi de marché crypto : liste des 250 premières capitalisations, prix en temps
+réel et graphiques en bougies. Next.js (App Router) déployé sur Vercel.
 
-## Available Scripts
+## Commandes
 
-In the project directory, you can run:
+```bash
+npm run dev      # serveur de dev sur http://localhost:3000
+npm run build    # build de production (à lancer avant tout commit non trivial)
+npm run lint     # eslint (l'exécutable, pas `next lint` : retiré dans Next 16)
+```
 
-### `npm start`
+Node >= 20.9 requis (`engines` dans package.json).
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+## Variables d'environnement
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+Copier `.env.example` vers `.env.local`. Aucune variable n'est obligatoire pour
+démarrer : sans `COINGECKO_API_KEY`, l'app bascule sur le quota public partagé
+par IP, ce qui suffit en local mais provoque des 429 en production.
 
-### `npm test`
+`COINGECKO_API_KEY` est un **secret** : jamais de préfixe `NEXT_PUBLIC_`, jamais
+committée. Elle ne doit être lue que depuis `app/lib/coingecko.ts`, côté serveur.
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+## Sources de données
 
-### `npm run build`
+L'app croise deux sources, et la répartition n'est pas arbitraire.
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+| Rôle | Source | Clé |
+| --- | --- | --- |
+| Référentiel : noms, logos, capitalisation, offre, ATH, description, sparkline | CoinGecko | oui, côté serveur |
+| Prix en direct | Binance `!miniTicker@arr` (WebSocket) | non |
+| Graphiques en bougies | Binance `klines` | non |
+| Indice Fear & Greed | alternative.me | non |
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+Trois points à connaître avant de toucher à cette répartition :
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+- **Binance ne couvre que 56 % des coins volatils du top 250.** Ni HYPE, ni LEO,
+  ni CRO, ni OKB n'y ont de paire USDT — la plateforme ne liste pas les jetons
+  de ses concurrentes. Le prix CoinGecko n'est donc pas un cas de repli
+  exceptionnel, c'est le régime normal de près de la moitié des lignes. Une
+  ligne sans tick est normale et ne doit jamais être présentée comme une erreur.
+- **Le flux `!ticker@arr` ne renvoie rien** (testé, aucun message en 25 s).
+  Utiliser `!miniTicker@arr`, qui fonctionne et n'envoie que les symboles ayant
+  bougé. Il ne fournit pas de champ de variation : elle se calcule
+  `(c - o) / o * 100`.
+- **L'hôte est `data-stream.binance.vision`**, pas `stream.binance.com` : il est
+  dédié aux données de marché, ne demande aucun compte, et se connecte cinq fois
+  plus vite (1,4 s contre 7,2 s en mesure).
 
-### `npm run eject`
+## Sécurité
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
-
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
-
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
-
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
-
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+- En-têtes et CSP dans `next.config.js`. Toute nouvelle origine appelée depuis
+  le navigateur doit être déclarée dans `connect-src`, sinon elle est bloquée
+  silencieusement.
+- Les routes `/api/*` n'acceptent aucune URL arbitraire : l'identifiant est
+  validé puis vérifié présent dans le référentiel, sinon on rouvre une surface
+  SSRF.
+- L'app est en lecture seule et n'utilise aucune Server Action.
